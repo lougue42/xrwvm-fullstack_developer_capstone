@@ -12,7 +12,8 @@ from django.contrib.auth import login, authenticate, logout
 import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
-# from .populate import initiate
+from .models import CarMake, CarModel
+from .populate import initiate
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -34,6 +35,15 @@ def login_user(request):
             return JsonResponse({"userName": username, "status": "Authenticated"})
         else:
             return JsonResponse({"status": "Failed"})
+
+# Create a `get_cars` view to load/populate cars
+def get_cars(request):
+    count = CarMake.objects.count()
+    if count == 0:
+        initiate()
+    car_models = CarModel.objects.select_related('car_make')
+    cars = [{"CarModel": c.name, "CarMake": c.car_make.name} for c in car_models]
+    return JsonResponse({"CarModels": cars})
 
 # Create a `logout_user` view to handle sign out request
 # def logout_user(request):
